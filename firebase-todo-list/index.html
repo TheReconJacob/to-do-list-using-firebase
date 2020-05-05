@@ -1,0 +1,129 @@
+<head>
+    <script src="http://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-firestore.js"></script>
+</head>
+
+<body>
+    <style>
+        article {
+            color: darkslategray;
+        }
+
+        #clickbutton {
+            color: white;
+        }
+
+        .jacobstudios {
+            color: darkslategray;
+        }
+
+        h1,
+        h2 {
+            color: darkslategray;
+        }
+
+        section p {
+            color: darkslategray;
+            font-weight: bold;
+        }
+
+        header>h1 {
+            text-decoration: underline;
+        }
+
+        h1+h2 {
+            font-weight: normal;
+        }
+
+        h1~h2 {
+            font-size: 20px;
+        }
+
+        * {
+            margin: auto;
+            width: 90%;
+            padding: 10px;
+        }
+
+        button[type="submit"] {
+            background-color: darkslategray;
+        }
+
+        button:hover {
+            background-color: slategray;
+        }
+    </style>
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-analytics.js"></script>
+
+    <script>
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyACGqYxik-eatMioVOu-rQeUIMcZDnWiOQ",
+            authDomain: "jacobvibert-firebase-project.firebaseapp.com",
+            databaseURL: "https://jacobvibert-firebase-project.firebaseio.com",
+            projectId: "jacobvibert-firebase-project",
+            storageBucket: "jacobvibert-firebase-project.appspot.com",
+            messagingSenderId: "478249796725",
+            appId: "1:478249796725:web:d82104e98cd8e55ae4643c",
+            measurementId: "G-K19MC44C88"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig)
+        firebase.analytics();
+        const db = firebase.firestore()
+        $(document).on('click', '#clickButton', function () {
+            db.collection('tasks').add({
+                task: `${$("#taskInput").val().replace(/[^ \w]+/, '_')}`,
+                status: 0,
+                ts: new Date().getTime()
+            })
+            $("#taskInput").val("")
+        });
+        db.collection('tasks').orderBy('ts').onSnapshot(renderTasks)
+
+        function renderTasks(firebase_records) {
+            let tasks = $('#tasks');
+            tasks.html("")
+            firebase_records.forEach(record => {
+                tasks.prepend(`<p id="task${record.id}">${record.data().task}<button id="done${record.id}">Done</button><button id="delete${record.id}" style="display:none;">delete</button></p>`);
+
+                $(document).on('click', `#done${record.id}`, function () {
+                    db.collection('tasks').doc(record.id).update({ status: 1 })
+                })
+
+                $(document).on('click', `#delete${record.id}`, function () {
+                    db.collection('tasks').doc(record.id).delete()
+                })
+
+                if (record.data().status == 1) {
+                    $(`#task${record.id}`).css('text-decoration', 'line-through')
+                    $(`#done${record.id}`).css('display', 'none')
+                    $(`#delete${record.id}`).removeAttr("style")
+                }
+            })
+            if (firebase_records.empty) {
+                alert("Hmm, it seems you haven't created any tasks yet. It would be pretty rad if you did!");
+            }
+        }
+    </script>
+    <header>
+        <h1>Firebase Todo List</h1>
+        <h2>By Jacob Vibert</h2>
+    </header>
+    <input type="text" id="taskInput">
+    <button id="clickButton" type="submit">Submit</button>
+    <br> </br>
+    <article>
+        This is a Todo list using Firebase, which is much easier to use than a regular database.
+    </article>
+    <section id="tasks">
+    </section>
+</body>
+<br> </br>
+<footer class="jacobstudios">Jacob Studios&copy;</footer>
